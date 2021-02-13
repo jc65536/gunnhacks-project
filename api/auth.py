@@ -17,14 +17,16 @@ def register():
     username_check = User.query.filter_by(username=username).first()
 
     if username_check:
-        return jsonify({'message': 'Username already exists in database', 'registered': False, 'error': 'name-duplicate'})
+        return jsonify(
+            {'message': 'Username already exists in database', 'registered': False, 'error': 'name-duplicate'})
 
-    new_user = User(username=data['username'], password=guard.hash_password(password), roles='operator')
+    new_user = User(username=data['username'], password=guard.hash_password(password), roles='operator', activity_dates=set())
 
     db.session.add(new_user)
     db.session.commit()
 
     return jsonify({'message': 'success', 'registered': True})
+
 
 @auth.route('/api/login', methods=['POST'])
 def login():
