@@ -1,7 +1,7 @@
 import { login, authFetch, useAuth, logout } from "../auth"
 import React, { useEffect, useState } from "react"
 
-class WorkoutTile extends React.Component {
+class WorkoutCard extends React.Component {
 
     constructor(props) {
         super(props)
@@ -25,4 +25,4 @@ class WorkoutTile extends React.Component {
     }
 }
 
-export default WorkoutTile;
+export default WorkoutCard;

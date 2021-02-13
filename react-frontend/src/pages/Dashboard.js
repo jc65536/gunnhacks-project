@@ -1,6 +1,6 @@
 import { login, authFetch, useAuth, logout } from "../auth"
 import React, { useEffect, useState } from "react"
-import WorkoutTile from "../components/WorkoutTile"
+import WorkoutCard from "../components/WorkoutCard"
 import {
     BrowserRouter as Router,
     Switch,
@@ -24,7 +24,7 @@ export default function Dashboard() {
             if (response) {
                 console.log(response);
                 setStats(response);
-                setWorkouts(response.workouts.sort((a, b) => (a.timestamp < b.timestamp) ? 1 : -1).map(o => <WorkoutTile stats={o}/>));
+                setWorkouts(response.workouts.sort((a, b) => (a.timestamp < b.timestamp) ? 1 : -1).map(o => <WorkoutCard stats={o}/>));
             }
         })
     }, [])
