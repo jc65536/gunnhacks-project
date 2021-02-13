@@ -7,6 +7,8 @@ import {
     Redirect
 } from "react-router-dom"
 import { login, authFetch, useAuth, logout } from "../auth"
+import * as posenet from "@tensorflow-models/posenet"
+import * as tfjs from '@tensorflow/tfjs';
 
 class Workout extends React.Component {
 
@@ -35,8 +37,10 @@ class Workout extends React.Component {
         })
     }
 
-    startCapture() {
+    async startCapture() {
         var video = document.querySelector("#videoElement");
+        var net = await posenet.load();
+        console.log(net)
         console.log(video)
         if (navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: true })

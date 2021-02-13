@@ -4,6 +4,10 @@
   "private": true,
   "dependencies": {
     "@tensorflow-models/posenet": "^2.2.1",
+    "@tensorflow/tfjs": "^3.0.0",
+    "@tensorflow/tfjs-backend-webgl": "^3.0.0",
+    "@tensorflow/tfjs-converter": "^3.0.0",
+    "@tensorflow/tfjs-core": "^3.0.0",
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.5",
     "@testing-library/user-event": "^12.7.0",
