@@ -44,13 +44,26 @@ class Workout extends React.Component {
         console.log(video)
         if (navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function (stream) {
+                .then(async function (stream) {
                     video.srcObject = stream;
+
                 })
                 .catch(function (err0r) {
+                    console.log(err0r);
                     console.log("Something went wrong!");
                 });
         }
+
+        video.addEventListener('loadeddata', async (e) => {
+            //Video should now be loaded but we can add a second check
+
+            if (video.readyState >= 3) {
+                //your code goes here
+                var pose = await net.estimateSinglePose(video);
+                console.log(pose);
+            }
+
+        });
     }
 
     render() {
