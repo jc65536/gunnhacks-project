@@ -21,7 +21,7 @@ def register_extensions(app):
     from .extensions import db, guard
     from .models import User
     # Will probably need to make a separate config file at some point
-    app.config['SECRET_KEY'] = "test"
+    app.config['SECRET_KEY'] = SECRET_KEY
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config["JWT_ACCESS_LIFESPAN"] = {"hours": 24}
