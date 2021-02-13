@@ -12,12 +12,6 @@ import * as tfjs from '@tensorflow/tfjs';
 
 class Workout extends React.Component {
 
-    constructor(props) {
-        super(props)
-        this.doWorkout = this.doWorkout.bind(this);
-        this.startCapture = this.startCapture.bind(this);
-    }
-
     doWorkout() {
         authFetch("/api/setstats", {
             method: 'post',
@@ -37,47 +31,178 @@ class Workout extends React.Component {
         })
     }
 
-    async startCapture() {
-        var video = document.querySelector("#videoElement");
-        var net = await posenet.load();
-        console.log(net)
-        console.log(video)
-        if (navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(async function (stream) {
-                    video.srcObject = stream;
+    static defaultProps = {
+        videoWidth: 500,
+        videoHeight: 500,
+        flipHorizontal: true,
+        showVideo: true,
+        showSkeleton: true,
+        showPoints: true,
+        minPoseConfidence: 0.1,
+        minPartConfidence: 0.5,
+        maxPoseDetections: 2,
+        nmsRadius: 20,
+        outputStride: 32,
+        imageScaleFactor: 0.5,
+        skeletonColor: '#ffadea',
+        skeletonLineWidth: 6,
+        loadingText: 'Loading...please be patient...'
+    }
 
-                })
-                .catch(function (err0r) {
-                    console.log(err0r);
-                    console.log("Something went wrong!");
-                });
+    
+
+    constructor(props) {
+        super(props)
+        this.state = {
+            t1: performance.now()
+        }
+    }
+
+    getCanvas = elem => {
+        this.canvas = elem
+    }
+
+    getVideo = elem => {
+        this.video = elem
+    }
+
+    async componentDidMount() {
+        try {
+            await this.setupCamera()
+        } catch (error) {
+            throw new Error(
+                'This browser does not support video capture, or this device does not have a camera'
+            )
         }
 
-        video.addEventListener('loadeddata', async (e) => {
-            //Video should now be loaded but we can add a second check
+        try {
+            this.posenet = await posenet.load()
+        } catch (error) {
+            throw new Error('PoseNet failed to load')
+        } finally {
+            setTimeout(() => {
+                this.setState({ loading: false })
+            }, 200)
+        }
 
-            if (video.readyState >= 3) {
-                //your code goes here
-                var pose = await net.estimateSinglePose(video);
-                console.log(pose);
+        this.detectPose()
+    }
+
+    async setupCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error(
+                'Browser API navigator.mediaDevices.getUserMedia not available'
+            )
+        }
+        const { videoWidth, videoHeight } = this.props
+        const video = this.video
+        video.width = videoWidth
+        video.height = videoHeight
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+                facingMode: 'user',
+                width: videoWidth,
+                height: videoHeight
+            }
+        })
+
+        video.srcObject = stream
+
+        return new Promise(resolve => {
+            video.onloadedmetadata = () => {
+                video.play()
+                resolve(video)
+            }
+        })
+    }
+
+    detectPose() {
+        const { videoWidth, videoHeight } = this.props
+        const canvas = this.canvas
+        const canvasContext = canvas.getContext('2d')
+
+        canvas.width = videoWidth
+        canvas.height = videoHeight
+
+        this.poseDetectionFrame(canvasContext)
+    }
+
+
+    poseDetectionFrame(canvasContext) {
+        const {
+            imageScaleFactor,
+            flipHorizontal,
+            outputStride,
+            minPoseConfidence,
+            minPartConfidence,
+            maxPoseDetections,
+            nmsRadius,
+            videoWidth,
+            videoHeight,
+            showVideo,
+            showPoints,
+            showSkeleton,
+            skeletonColor,
+            skeletonLineWidth
+        } = this.props
+
+        const posenetModel = this.posenet
+        const video = this.video
+
+        const findPoseDetectionFrame = async () => {
+            let poses = []
+
+            const pose = await posenetModel.estimateSinglePose(
+                video,
+                imageScaleFactor,
+                flipHorizontal,
+                outputStride
+            )
+            poses.push(pose)
+
+            canvasContext.clearRect(0, 0, videoWidth, videoHeight)
+
+            if (showVideo) {
+                canvasContext.save()
+                canvasContext.scale(-1, 1)
+                canvasContext.translate(-videoWidth, 0)
+                canvasContext.drawImage(video, 0, 0, videoWidth, videoHeight)
+                canvasContext.restore()
             }
 
-        });
+            poses.forEach(({ score, keypoints }) => {
+                if (score >= minPoseConfidence) {
+                    if (showPoints) {
+                        // draw key points
+                    }
+                    if (showSkeleton) {
+                        // draw skeleton
+                    }
+                }
+            })
+
+            var t2 = performance.now();
+
+            console.log(1000 / (t2 - this.state.t1));
+            this.setState({t1: t2})
+            requestAnimationFrame(findPoseDetectionFrame)
+        }
+        findPoseDetectionFrame()
     }
 
     render() {
-        return <div>
-            <h2>Welcome to workout!</h2>
-            <input type="button" value="do workout" onClick={this.doWorkout} />
-            <div id="video-container">
-                <video autoPlay={true} id="videoElement" onClick={this.startCapture} width="500px" height="375px" style={{
-                    border: "1px solid black"
-                }}>
-
-                </video>
+        return (
+            <div>
+                <div>
+                    <video id="videoNoShow" playsInline ref={this.getVideo} style={{
+                        display: "none"
+                    }} />
+                    <canvas className="webcam" ref={this.getCanvas} />
+                </div>
             </div>
-        </div>
+        )
     }
 }
 
