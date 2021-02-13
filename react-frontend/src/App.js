@@ -10,7 +10,7 @@ import Login from "./pages/Login"
 import Signup from "./pages/Signup"
 import Dashboard from "./pages/Dashboard"
 import PrivateRoute from "./components/PrivateRoute"
-import Squats from "./pages/workouts/Squats"
+import Workout from "./pages/Workout"
 
 export default function App() {
     return (
@@ -43,7 +43,7 @@ export default function App() {
                         <Signup />
                     </Route>
                     <PrivateRoute component={Dashboard} path="/dashboard" />
-                    <PrivateRoute component={Squats} path="/workouts/Squats" />
+                    <PrivateRoute component={Workout} path="/workout" />
                     <Route path="/">
                         <Home />
                     </Route>

@@ -9,16 +9,18 @@ class WorkoutTile extends React.Component {
     }
 
     render() {
+        var exercises = [];
+        for (var i in this.props.stats.reps) {
+            exercises.push(<p>{i}: {this.props.stats.reps[i]} reps</p>);
+        }
         return (
-            <a href={`workouts/${this.props.name.toLowerCase()}`}>
-                <td style={{
-                    width: "200px",
-                    height: "100px",
-                    border: "1px solid black"
-                }}>
-                    <h2>{this.props.name}</h2>
-                </td>
-            </a>
+            <li style={{
+                border: "1px solid black"
+            }}>
+                <h2>{new Date(this.props.stats.timestamp * 1000).toString()}</h2>
+                {exercises}
+                <h2>Calories burned: {this.props.stats.calories}</h2>
+            </li>
         )
     }
 }
