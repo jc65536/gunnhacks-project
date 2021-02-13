@@ -1,7 +1,7 @@
 .idea
 venv
-*.pyc
-*.sqlite
+**/*.pyc
+**/*.sqlite
 # dependencies
 react-frontend/node_modules
 react-frontend/.pnp
