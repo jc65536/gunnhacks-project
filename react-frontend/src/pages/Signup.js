@@ -16,12 +16,16 @@ class Signup extends React.Component {
         this.state = {
             signedUp: false,
             username: "",
-            password: ""
+            password: "",
+            weight: "",
+            height: ""
         };
 
         this.onSubmitClick = this.onSubmitClick.bind(this);
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
         this.handleUsernameChange = this.handleUsernameChange.bind(this);
+        this.handleWeightChange = this.handleWeightChange.bind(this);
+        this.handleHeightChange = this.handleHeightChange.bind(this);
     }
 
     onSubmitClick(e) {
@@ -29,7 +33,11 @@ class Signup extends React.Component {
         console.log("You pressed login");
         let opts = {
             'username': this.state.username,
-            'password': this.state.password
+            'password': this.state.password,
+            attributes: {
+                weight: parseFloat(this.state.weight) * 0.453592,
+                height: parseFloat(this.state.height) * 0.3048
+            }
         }
         console.log(opts);
         fetch('/api/register', {
@@ -52,9 +60,16 @@ class Signup extends React.Component {
         this.setState({ password: e.target.value });
     }
 
+    handleWeightChange(e) {
+        this.setState({ weight: e.target.value })
+    }
+
+    handleHeightChange(e) {
+        this.setState({ height: e.target.value })
+    }
+
     render() {
         if (this.state.signedUp) {
-            alert("You are signed up! Now you can log in.");
             return <Redirect to="/login" />
         } else
             return <div>
@@ -75,7 +90,25 @@ class Signup extends React.Component {
                             value={this.state.password}
                         />
                     </div>
-                    <input onClick={this.onSubmitClick} type="submit" value="Sign up"/>
+                    <br />
+                    Optional:
+                    <div>
+                        <input
+                            type="number"
+                            placeholder="Weight (lbs)"
+                            onChange={this.handleWeightChange}
+                            value={this.state.weight}
+                        />
+                    </div>
+                    <div>
+                        <input
+                            type="number"
+                            placeholder="Height (ft)"
+                            onChange={this.handleHeightChange}
+                            value={this.state.height}
+                        />
+                    </div>
+                    <input onClick={this.onSubmitClick} type="submit" value="Sign up" />
                 </form>
             </div>
     }

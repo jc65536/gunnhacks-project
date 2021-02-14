@@ -27,11 +27,11 @@ class Workout extends React.Component {
             method: 'post',
             body: JSON.stringify({
                 reps: {
-                    squats: 2,
-                    jumpingJacks: 4
+                    squats: this.state.squatReps,
+                    jumpingJacks: this.state.jumpingJackReps
                 },
                 date: new Date().toISOString(),
-                calories: 400
+                calories: this.state.calories
             })
         }).then(response => {
 
@@ -71,7 +71,12 @@ class Workout extends React.Component {
             hkdist: 0,
             thighLen: 0,
             angle: 0,
-            torsoSize: 0
+            torsoSize: 0,
+            weight: 0,
+            height: 0,
+            calories: 0,
+            lowest: 10000000000,
+            pxHeight: 0
         }
     }
 
@@ -101,6 +106,20 @@ class Workout extends React.Component {
                 this.setState({loading: false})
             }, 200)
         }
+
+        authFetch("/api/getuser").then(response => {
+            if (response.status === 401) {
+                console.log("Sorry you aren't authorized!")
+                return null
+            }
+            return response.json();
+        }).then(response => {
+            if (response) {
+                console.log(response);
+                this.setState({weight: response.weight})
+                this.setState({height: response.height});
+            }
+        })
 
         this.detectPose()
     }
@@ -214,7 +233,8 @@ class Workout extends React.Component {
                 lshoulder: getPartPosition(pose, "leftShoulder"),
                 rshoulder: getPartPosition(pose, "rightShoulder"),
                 lankle: getPartPosition(pose, "leftAnkle"),
-                rankle: getPartPosition(pose, "rightAnkle")
+                rankle: getPartPosition(pose, "rightAnkle"),
+                eye: getPartPosition(pose, "rightEye")
             }
             if (!pos.lhip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder || !pos.rankle || !pos.lankle) {
                 this.setState({ready: false});
@@ -222,6 +242,7 @@ class Workout extends React.Component {
                 // sets these only once (when you stand in front of the camera)
                 this.setState({ready: true});
                 this.setState({thighLen: Math.abs(pos.rhip.y - pos.rknee.y)})
+                this.setState({pxHeight: Math.abs(pos.eye.y - pos.rankle.y)})
             }
             if (this.state.ready) {
                 var hipKneeDist = Math.abs(pos.rhip.y - pos.rknee.y)
@@ -230,6 +251,7 @@ class Workout extends React.Component {
                     this.setState({torsoSize: newTorsoSize});
                     console.log("HERE");
                     this.setState({thighLen: Math.abs(pos.rhip.y - pos.rknee.y)})
+                    this.setState({pxHeight: Math.abs(pos.eye.y - pos.rankle.y)})
                 }
                 this.setState({hkdist: hipKneeDist});
                 const rightPosition = [pos.rankle.x, pos.rankle.y];
@@ -243,6 +265,7 @@ class Workout extends React.Component {
                         / (-2 * a * b)
                     ) * 180. / Math.PI
                 });
+                this.setState({lowest: Math.min(this.state.lowest, Math.abs(pos.eye.y - pos.rankle.y))})
                 switch (this.state.squatKeyPos) {
                     case 0:
                         if (hipKneeDist <= 0.5 * this.state.thighLen) {
@@ -253,11 +276,16 @@ class Workout extends React.Component {
                         if (hipKneeDist / this.state.thighLen >= 0.9) {
                             this.setState({squatKeyPos: 0});
                             this.setState({squatReps: this.state.squatReps + 1});
+                            var delta = 0;
+                            delta = this.state.weight * 10 * ((this.state.pxHeight - this.state.lowest) / this.state.pxHeight * this.state.height) * 0.000239006;
+                            this.setState({calories: this.state.calories + delta})
+                            this.setState({lowest: 10000000000});
                         }
                         break;
                 }
                 switch (this.state.jumpingKeyPos) {
                     case 0:
+                        this.setState({widest: Math.max(this.state.widest, this.state.angle)});
                         if (this.state.angle >= 35) {
                             this.setState({jumpingKeyPos: 1});
                         }
@@ -266,12 +294,13 @@ class Workout extends React.Component {
                         if (this.state.angle <= 15) {
                             this.setState({jumpingKeyPos: 0});
                             this.setState({jumpingJackReps: this.state.jumpingJackReps + 1});
+                            delta = this.state.weight * 10 * ((this.state.pxHeight - this.state.lowest) / this.state.pxHeight * this.state.height) * 0.000239006;
+                            this.setState({calories: this.state.calories + delta})
+                            this.setState({lowest: 10000000000});
                         }
                         break;
                 }
             }
-
-
 
             if (showPoints) {
                 for (var i = 0; i < pose.keypoints.length; i++) {
@@ -314,11 +343,8 @@ class Workout extends React.Component {
                 <h2>{this.state.ready ? "START" : "Stand up upright with your entire body in the frame"}</h2>
                 <h2>Squat Reps: {this.state.squatReps}</h2>
                 <h2>Jumping Jack Reps: {this.state.jumpingJackReps}</h2>
-                <h2>squatKeyPos: {this.state.squatKeyPos}</h2>
-                <h2>jumpingKeyPos: {this.state.jumpingKeyPos}</h2>
-                <h2>hkdist: {this.state.hkdist}</h2>
-                <h2>thighLen: {this.state.thighLen}</h2>
-                <h2>Angle: {this.state.angle}</h2>
+                <h2>Calories: {this.state.calories}</h2>
+                <input type="button" value="End workout"/>
             </div>
         )
     }
