@@ -10,6 +10,15 @@ import { login, authFetch, useAuth, logout } from "../auth"
 import * as posenet from "@tensorflow-models/posenet"
 import * as tfjs from '@tensorflow/tfjs';
 
+function getPartPosition(pose, part) {
+    var obj = pose.find(o => o.part === part);
+    if (obj.score > 0.1) {
+        return obj.position
+    } else {
+        return null;
+    }
+}
+
 class Workout extends React.Component {
 
     doWorkout() {
@@ -49,12 +58,13 @@ class Workout extends React.Component {
         loadingText: 'Loading...please be patient...'
     }
 
-    
-
     constructor(props) {
         super(props)
         this.state = {
-            t1: performance.now()
+            t1: performance.now(),
+            ready: false,
+            keyPos: 0,
+            reps: 0
         }
     }
 
@@ -152,7 +162,6 @@ class Workout extends React.Component {
         const video = this.video
 
         const findPoseDetectionFrame = async () => {
-            let poses = []
 
             const pose = await posenetModel.estimateSinglePose(
                 video,
@@ -160,7 +169,6 @@ class Workout extends React.Component {
                 flipHorizontal,
                 outputStride
             )
-            poses.push(pose)
 
             canvasContext.clearRect(0, 0, videoWidth, videoHeight)
 
@@ -172,16 +180,37 @@ class Workout extends React.Component {
                 canvasContext.restore()
             }
 
-            poses.forEach(({ score, keypoints }) => {
-                if (score >= minPoseConfidence) {
-                    if (showPoints) {
-                        // draw key points
+            // WIP squat detection
+            var pos = {
+                lhip: getPartPosition(pose, "leftHip"),
+                rhip: getPartPosition(pose, "rightHip"),
+                lknee: getPartPosition(pose, "leftKnee"),
+                rknee: getPartPosition(pose, "rightKnee"),
+                lshoulder: getPartPosition(pose, "leftShoulder"),
+                rshoulder: getPartPosition(pose, "rightShoulder")
+            }
+            var thighLen = 0;
+            if (!pos.lHip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder) {
+                this.setState({ready: false});
+            } else if (!this.state.ready) {
+                // sets these only once (when you stand in front of the camera)
+                this.setState({ready: true});
+                thighLen = Math.abs(pos.rhip.y - pos.lhip.y);
+            }
+            var hipKneeDist = Math.abs(pos.rhip.y - pos.rknee.y)
+            switch (this.state.keyPos) {
+                case 0:
+                    if (hipKneeDist <= 0.5 * thighLen) {
+                        this.setState({keyPos: 1});
                     }
-                    if (showSkeleton) {
-                        // draw skeleton
-                    }
-                }
-            })
+                    break;
+                case 1:
+                    if ((thighLen - hipKneeDist) / thighLen >= 0.9) {
+                        this.setState({keyPos: 0});
+                        this.setState({reps: this.state.reps + 1});
+                    } 
+                    break;
+            }
 
             var t2 = performance.now();
 
@@ -201,6 +230,8 @@ class Workout extends React.Component {
                     }} />
                     <canvas className="webcam" ref={this.getCanvas} />
                 </div>
+                <h1>{this.state.ready ? "START" : "Stand up upright with your entire body in the frame"}</h1>
+                <h1>Reps: {this.state.reps}</h1>
             </div>
         )
     }
