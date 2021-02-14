@@ -70,7 +70,8 @@ class Workout extends React.Component {
             jumpingJackReps: 0,
             hkdist: 0,
             thighLen: 0,
-            angle: 0
+            angle: 0,
+            torsoSize: 0
         }
     }
 
@@ -224,6 +225,11 @@ class Workout extends React.Component {
             }
             if (this.state.ready) {
                 var hipKneeDist = Math.abs(pos.rhip.y - pos.rknee.y)
+                var newTorsoSize = Math.abs(pos.rshoulder.x - pos.lshoulder.x);
+                if (Math.abs(newTorsoSize - this.state.torsoSize) / this.state.torsoSize > 0.3) {
+                    this.setState({torsoSize: newTorsoSize});
+                    this.setState({thighLen: Math.abs(pos.rhip.y - pos.rknee.y)})
+                }
                 this.setState({hkdist: hipKneeDist});
                 const rightPosition = [pos.rankle.x, pos.rankle.y];
                 const leftPosition = [pos.lankle.x, pos.lankle.y];
