@@ -268,7 +268,7 @@ class Workout extends React.Component {
                 this.setState({lowest: Math.min(this.state.lowest, Math.abs(pos.eye.y - pos.rankle.y))})
                 switch (this.state.squatKeyPos) {
                     case 0:
-                        if (hipKneeDist <= 0.5 * this.state.thighLen) {
+                        if (hipKneeDist <= 0.65 * this.state.thighLen && !(this.state.jumpingKeyPos)) {
                             this.setState({squatKeyPos: 1});
                         }
                         break;
@@ -286,7 +286,7 @@ class Workout extends React.Component {
                 switch (this.state.jumpingKeyPos) {
                     case 0:
                         this.setState({widest: Math.max(this.state.widest, this.state.angle)});
-                        if (this.state.angle >= 35) {
+                        if (this.state.angle >= 35 && !(this.state.squatKeyPos)) {
                             this.setState({jumpingKeyPos: 1});
                         }
                         break;
