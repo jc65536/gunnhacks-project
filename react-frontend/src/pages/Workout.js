@@ -65,7 +65,9 @@ class Workout extends React.Component {
             t1: performance.now(),
             ready: false,
             keyPos: 0,
-            reps: 0
+            reps: 0,
+            hkdist: 0,
+            thighLen: 0
         }
     }
 
@@ -191,15 +193,16 @@ class Workout extends React.Component {
                 rshoulder: getPartPosition(pose, "rightShoulder")
             }
             var thighLen = 0;
-            if (!pos.lHip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder) {
+            if (!pos.lhip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder) {
                 this.setState({ ready: false });
             } else if (!this.state.ready) {
                 // sets these only once (when you stand in front of the camera)
                 this.setState({ ready: true });
-                thighLen = Math.abs(pos.rhip.y - pos.lhip.y);
+                this.setState({thighLen: Math.abs(pos.rhip.y - pos.rknee.y)})
             }
             if (this.state.ready) {
                 var hipKneeDist = Math.abs(pos.rhip.y - pos.rknee.y)
+                this.setState({hkdist: hipKneeDist});
                 switch (this.state.keyPos) {
                     case 0:
                         if (hipKneeDist <= 0.5 * thighLen) {
@@ -207,7 +210,7 @@ class Workout extends React.Component {
                         }
                         break;
                     case 1:
-                        if ((thighLen - hipKneeDist) / thighLen >= 0.9) {
+                        if (hipKneeDist / thighLen >= 0.9) {
                             this.setState({ keyPos: 0 });
                             this.setState({ reps: this.state.reps + 1 });
                         }
@@ -235,6 +238,9 @@ class Workout extends React.Component {
                 </div>
                 <h1>{this.state.ready ? "START" : "Stand up upright with your entire body in the frame"}</h1>
                 <h1>Reps: {this.state.reps}</h1>
+                <h1>keyPos: {this.state.keyPos}</h1>
+                <h1>hkdist: {this.state.hkdist}</h1>
+                <h1>thighLen: {this.state.thighLen}</h1>
             </div>
         )
     }
