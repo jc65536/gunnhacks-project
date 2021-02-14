@@ -148,6 +148,14 @@ class Workout extends React.Component {
         canvasContext.fillStyle = 'black';
     }
 
+    drawSegment(canvasContext, [ax, ay], [bx, by], lineWidth=3, color="chartreuse") {
+        canvasContext.beginPath();
+        canvasContext.moveTo(ax, ay);
+        canvasContext.lineTo(bx, by);
+        canvasContext.lineWidth = lineWidth;
+        canvasContext.strokeStyle = color;
+        canvasContext.stroke();
+    }
 
     poseDetectionFrame(canvasContext) {
         const {
@@ -232,6 +240,15 @@ class Workout extends React.Component {
 
                     this.drawPoint(canvasContext, keypoint['position']['x'], keypoint['position']['y']);
                 }
+            }
+
+            if (showSkeleton) {
+                const adjacentKeyPoints = posenet.getAdjacentKeyPoints(pose.keypoints, minPartConfidence);
+
+                adjacentKeyPoints.forEach((keypoints) => {
+                    this.drawSegment(canvasContext,[keypoints[0].position.x, keypoints[0].position.y],
+                        [keypoints[1].position.x, keypoints[1].position.y]);
+                });
             }
             var t2 = performance.now();
 
