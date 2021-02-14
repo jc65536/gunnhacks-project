@@ -11,30 +11,17 @@ import Signup from "./pages/Signup"
 import Dashboard from "./pages/Dashboard"
 import PrivateRoute from "./components/PrivateRoute"
 import Workout from "./pages/Workout"
+import "./style/main.css"
+import NavBar from "./components/NavBar"
 
 export default function App() {
     return (
         <Router>
             <div>
-                <nav>
-                    <ul>
-                        <li>
-                            <Link to="/">Home</Link>
-                        </li>
-                        <li>
-                            <Link to="/login">Login</Link>
-                        </li>
-                        <li>
-                            <Link to="/signup">Signup</Link>
-                        </li>
-                        <li>
-                            <Link to="/dashboard">Dashboard</Link>
-                        </li>
-                    </ul>
-                </nav>
-
+                <NavBar />
                 {/* A <Switch> looks through its children <Route>s and
             renders the first one that matches the current URL. */}
+            <div className="content-container">
                 <Switch>
                     <Route path="/login">
                         <Login />
@@ -48,11 +35,12 @@ export default function App() {
                         <Home />
                     </Route>
                 </Switch>
+                </div>
             </div>
         </Router>
     );
 }
 
 function Home() {
-    return <h2>Home</h2>
+    return <h1>Home</h1>
 }

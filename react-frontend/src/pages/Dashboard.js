@@ -31,13 +31,13 @@ export default function Dashboard() {
     return (
         
         <div>
-            <h2>Dashboard: {message}</h2>
+            <h1>Dashboard</h1>
             <input type="submit" value="Logout" onClick={() => logout()} />
             <Link to="/workout"><input type="button" value="Workout"/></Link>
             <div className="stats-container">
                 <h2>Streak: {stats.streak}</h2>
             </div>
-            <ul>
+            <ul class="workouts-container">
                 {workouts}
             </ul>
         </div>

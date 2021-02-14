@@ -233,6 +233,8 @@ class Workout extends React.Component {
                 }
             }
 
+
+
             if (showPoints) {
                 for (var i = 0; i < pose.keypoints.length; i++) {
                     const keypoint = pose.keypoints[i];
@@ -264,17 +266,18 @@ class Workout extends React.Component {
     render() {
         return (
             <div>
+                <h1>Workout</h1>
                 <div>
                     <video id="videoNoShow" playsInline ref={this.getVideo} style={{
                         display: "none"
                     }} />
                     <canvas className="webcam" ref={this.getCanvas} />
                 </div>
-                <h1>{this.state.ready ? "START" : "Stand up upright with your entire body in the frame"}</h1>
-                <h1>Reps: {this.state.reps}</h1>
-                <h1>keyPos: {this.state.keyPos}</h1>
-                <h1>hkdist: {this.state.hkdist}</h1>
-                <h1>thighLen: {this.state.thighLen}</h1>
+                <h2>{this.state.ready ? "START" : "Stand up upright with your entire body in the frame"}</h2>
+                <h2>Reps: {this.state.reps}</h2>
+                <h2>keyPos: {this.state.keyPos}</h2>
+                <h2>hkdist: {this.state.hkdist}</h2>
+                <h2>thighLen: {this.state.thighLen}</h2>
             </div>
         )
     }

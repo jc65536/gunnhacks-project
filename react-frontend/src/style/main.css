@@ -1,0 +1,105 @@
+@font-face {
+    font-family: "Roboto-Slab";
+    src: url("roboto-slab/RobotoSlab-Regular.ttf");
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: "Roboto-Slab";
+    src: url("roboto-slab/RobotoSlab-Bold.ttf");
+    font-weight: bold;
+}
+
+* {
+    font-family: "Roboto-Slab";
+    color: #ffffff;
+}
+
+body {
+    background: #111111;
+}
+
+h1 {
+    font-size: 48px;
+}
+
+.content-container {
+    width: 85%;
+    background: #181818;
+    padding: 20px 40px;
+    margin: auto;
+    margin-top: 50px;
+}
+
+nav, nav ul {
+    display: block;
+    width: 100%;
+    margin-top: 0;
+}
+
+nav ul {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    flex-direction: row;
+    justify-content: flex-start;
+    background: #222222;
+}
+
+nav li {
+    display: inline-block;
+    padding: 16px 30px;
+}
+
+nav li:hover {
+    background: #333333;
+}
+
+form {
+    margin-left: 30px;
+}
+
+input[type=text], input[type=password] {
+    background-color: #111111;
+    border: 0;
+    padding: 16px 20px;
+    font-size: 16px;
+    margin: 10px 0px;
+}
+
+input[type=text]:focus, input[type=password]:focus {
+    border: 0;
+    outline: none;
+}
+
+input[type="button"], input[type="submit"] {
+    border: 0;
+    padding: 16px 20px;
+    font-size: 16px;
+    margin: 10px 0px;
+    background: #333333;
+    cursor: pointer;
+}
+
+input[type="button"]:hover, input[type="submit"]:hover {
+    background: #338833;
+}
+
+input[type="button"]:focus, input[type="submit"]:focus {
+    outline: none;
+}
+
+a:focus {
+    outline: none;
+}
+
+.workouts-container {
+    padding: 0;
+}
+
+.workout-card {
+    list-style: none;
+    background: #222222;
+    padding: 10px 20px;
+    margin: 16px 0px;
+}

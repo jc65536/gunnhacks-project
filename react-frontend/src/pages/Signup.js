@@ -39,17 +39,17 @@ class Signup extends React.Component {
             .then(token => {
                 console.log(token.message);
                 if (token.registered) {
-                    this.setState({signedUp: true});
+                    this.setState({ signedUp: true });
                 }
             })
     }
 
     handleUsernameChange(e) {
-        this.setState({username: e.target.value});
+        this.setState({ username: e.target.value });
     }
 
     handlePasswordChange(e) {
-        this.setState({password: e.target.value});
+        this.setState({ password: e.target.value });
     }
 
     render() {
@@ -58,7 +58,7 @@ class Signup extends React.Component {
             return <Redirect to="/login" />
         } else
             return <div>
-                <h2>Sign up</h2>
+                <h1>Sign up</h1>
                 <form action="#">
                     <div>
                         <input type="text"
@@ -75,7 +75,7 @@ class Signup extends React.Component {
                             value={this.state.password}
                         />
                     </div>
-                    <input value="Sign up" onClick={this.onSubmitClick} type="submit" />
+                    <input onClick={this.onSubmitClick} type="submit" value="Sign up"/>
                 </form>
             </div>
     }
