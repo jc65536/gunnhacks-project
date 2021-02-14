@@ -23,6 +23,8 @@ class User(db.Model):
                                backref='user', lazy='dynamic')
     activity_dates = db.Column(db.PickleType)
     streak = db.Column(db.Integer, default=0)
+    attributes = db.Column(db.PickleType)
+
     @property
     def identity(self):
         return self.id

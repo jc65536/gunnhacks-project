@@ -20,7 +20,7 @@ def register():
         return jsonify(
             {'message': 'Username already exists in database', 'registered': False, 'error': 'name-duplicate'})
 
-    new_user = User(username=data['username'], password=guard.hash_password(password), roles='operator', activity_dates=set())
+    new_user = User(username=data['username'], password=guard.hash_password(password), roles='operator', attributes=data.get("attributes", {'height':-1, 'weight':-1}), activity_dates=set())
 
     db.session.add(new_user)
     db.session.commit()

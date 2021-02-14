@@ -228,6 +228,7 @@ class Workout extends React.Component {
                 var newTorsoSize = Math.abs(pos.rshoulder.x - pos.lshoulder.x);
                 if (Math.abs(newTorsoSize - this.state.torsoSize) / this.state.torsoSize > 0.3) {
                     this.setState({torsoSize: newTorsoSize});
+                    console.log("HERE");
                     this.setState({thighLen: Math.abs(pos.rhip.y - pos.rknee.y)})
                 }
                 this.setState({hkdist: hipKneeDist});
