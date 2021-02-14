@@ -208,7 +208,6 @@ class Workout extends React.Component {
                 lshoulder: getPartPosition(pose, "leftShoulder"),
                 rshoulder: getPartPosition(pose, "rightShoulder")
             }
-            var thighLen = 0;
             if (!pos.lhip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder) {
                 this.setState({ ready: false });
             } else if (!this.state.ready) {
@@ -221,12 +220,12 @@ class Workout extends React.Component {
                 this.setState({hkdist: hipKneeDist});
                 switch (this.state.keyPos) {
                     case 0:
-                        if (hipKneeDist <= 0.5 * thighLen) {
+                        if (hipKneeDist <= 0.5 * this.state.thighLen) {
                             this.setState({ keyPos: 1 });
                         }
                         break;
                     case 1:
-                        if (hipKneeDist / thighLen >= 0.9) {
+                        if (hipKneeDist / this.state.thighLen >= 0.9) {
                             this.setState({ keyPos: 0 });
                             this.setState({ reps: this.state.reps + 1 });
                         }
