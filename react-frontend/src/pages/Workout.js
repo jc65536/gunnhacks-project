@@ -140,6 +140,14 @@ class Workout extends React.Component {
         this.poseDetectionFrame(canvasContext)
     }
 
+    drawPoint(canvasContext, x, y, radius=3, color="chartreuse") {
+        canvasContext.beginPath();
+        canvasContext.arc(x, y, radius, 0, 2 * Math.PI);
+        canvasContext.fillStyle = color;
+        canvasContext.fill();
+        canvasContext.fillStyle = 'black';
+    }
+
 
     poseDetectionFrame(canvasContext) {
         const {
@@ -175,8 +183,8 @@ class Workout extends React.Component {
 
             if (showVideo) {
                 canvasContext.save()
-                canvasContext.scale(-1, 1)
-                canvasContext.translate(-videoWidth, 0)
+                //canvasContext.scale(-1, 1)
+                //canvasContext.translate(-videoWidth, 0)
                 canvasContext.drawImage(video, 0, 0, videoWidth, videoHeight)
                 canvasContext.restore()
             }
@@ -215,6 +223,16 @@ class Workout extends React.Component {
                 }
             }
 
+            if (showPoints) {
+                for (var i = 0; i < pose.keypoints.length; i++) {
+                    const keypoint = pose.keypoints[i];
+                    if (keypoint.score < minPartConfidence) {
+                        continue;
+                    }
+
+                    this.drawPoint(canvasContext, keypoint['position']['x'], keypoint['position']['y']);
+                }
+            }
             var t2 = performance.now();
 
             console.log(1000 / (t2 - this.state.t1));
