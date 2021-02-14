@@ -23,6 +23,10 @@ h1 {
     font-size: 48px;
 }
 
+p {
+    font-size: 16px;
+}
+
 .content-container {
     width: 85%;
     background: #181818;

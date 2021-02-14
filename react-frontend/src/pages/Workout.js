@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, {useEffect, useState} from "react"
 import {
     BrowserRouter as Router,
     Switch,
@@ -6,7 +6,7 @@ import {
     Link,
     Redirect
 } from "react-router-dom"
-import { login, authFetch, useAuth, logout } from "../auth"
+import {login, authFetch, useAuth, logout} from "../auth"
 import * as posenet from "@tensorflow-models/posenet"
 import * as tfjs from '@tensorflow/tfjs';
 
@@ -52,7 +52,7 @@ class Workout extends React.Component {
         minPartConfidence: 0.5,
         maxPoseDetections: 2,
         nmsRadius: 20,
-        outputStride: 32,
+        outputStride: 16,
         imageScaleFactor: 0.5,
         skeletonColor: '#ffadea',
         skeletonLineWidth: 6,
@@ -64,10 +64,13 @@ class Workout extends React.Component {
         this.state = {
             t1: performance.now(),
             ready: false,
-            keyPos: 0,
-            reps: 0,
+            squatKeyPos: 0,
+            jumpingKeyPos: 0,
+            squatReps: 0,
+            jumpingJackReps: 0,
             hkdist: 0,
-            thighLen: 0
+            thighLen: 0,
+            angle: 0
         }
     }
 
@@ -94,7 +97,7 @@ class Workout extends React.Component {
             throw new Error('PoseNet failed to load')
         } finally {
             setTimeout(() => {
-                this.setState({ loading: false })
+                this.setState({loading: false})
             }, 200)
         }
 
@@ -107,7 +110,7 @@ class Workout extends React.Component {
                 'Browser API navigator.mediaDevices.getUserMedia not available'
             )
         }
-        const { videoWidth, videoHeight } = this.props
+        const {videoWidth, videoHeight} = this.props
         const video = this.video
         video.width = videoWidth
         video.height = videoHeight
@@ -132,7 +135,7 @@ class Workout extends React.Component {
     }
 
     detectPose() {
-        const { videoWidth, videoHeight } = this.props
+        const {videoWidth, videoHeight} = this.props
         const canvas = this.canvas
         const canvasContext = canvas.getContext('2d')
 
@@ -142,7 +145,7 @@ class Workout extends React.Component {
         this.poseDetectionFrame(canvasContext)
     }
 
-    drawPoint(canvasContext, x, y, radius=3, color="chartreuse") {
+    drawPoint(canvasContext, x, y, radius = 3, color = "chartreuse") {
         canvasContext.beginPath();
         canvasContext.arc(x, y, radius, 0, 2 * Math.PI);
         canvasContext.fillStyle = color;
@@ -150,13 +153,17 @@ class Workout extends React.Component {
         canvasContext.fillStyle = 'black';
     }
 
-    drawSegment(canvasContext, [ax, ay], [bx, by], lineWidth=3, color="chartreuse") {
+    drawSegment(canvasContext, [ax, ay], [bx, by], lineWidth = 3, color = "chartreuse") {
         canvasContext.beginPath();
         canvasContext.moveTo(ax, ay);
         canvasContext.lineTo(bx, by);
         canvasContext.lineWidth = lineWidth;
         canvasContext.strokeStyle = color;
         canvasContext.stroke();
+    }
+
+    distance([ax, ay], [bx, by]) {
+        return Math.hypot(ax - bx, ay - by);
     }
 
     poseDetectionFrame(canvasContext) {
@@ -173,8 +180,6 @@ class Workout extends React.Component {
             showVideo,
             showPoints,
             showSkeleton,
-            skeletonColor,
-            skeletonLineWidth
         } = this.props
 
         const posenetModel = this.posenet
@@ -206,28 +211,54 @@ class Workout extends React.Component {
                 lknee: getPartPosition(pose, "leftKnee"),
                 rknee: getPartPosition(pose, "rightKnee"),
                 lshoulder: getPartPosition(pose, "leftShoulder"),
-                rshoulder: getPartPosition(pose, "rightShoulder")
+                rshoulder: getPartPosition(pose, "rightShoulder"),
+                lankle: getPartPosition(pose, "leftAnkle"),
+                rankle: getPartPosition(pose, "rightAnkle")
             }
-            if (!pos.lhip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder) {
-                this.setState({ ready: false });
+            if (!pos.lhip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder || !pos.rankle || !pos.lankle) {
+                this.setState({ready: false});
             } else if (!this.state.ready) {
                 // sets these only once (when you stand in front of the camera)
-                this.setState({ ready: true });
+                this.setState({ready: true});
                 this.setState({thighLen: Math.abs(pos.rhip.y - pos.rknee.y)})
             }
             if (this.state.ready) {
                 var hipKneeDist = Math.abs(pos.rhip.y - pos.rknee.y)
                 this.setState({hkdist: hipKneeDist});
-                switch (this.state.keyPos) {
+                const rightPosition = [pos.rankle.x, pos.rankle.y];
+                const leftPosition = [pos.lankle.x, pos.lankle.y];
+                const midpointHips = [(pos.lhip.x + pos.rhip.x) / 2, (pos.lhip.y + pos.rhip.y) / 2];
+                const a = this.distance(midpointHips, rightPosition);
+                const b = this.distance(midpointHips, leftPosition);
+                this.setState({
+                    angle: Math.acos(
+                        (Math.pow(this.distance(leftPosition, rightPosition), 2) - Math.pow(a, 2) - Math.pow(b, 2))
+                        / (-2 * a * b)
+                    ) * 180. / Math.PI
+                });
+                switch (this.state.squatKeyPos) {
                     case 0:
                         if (hipKneeDist <= 0.5 * this.state.thighLen) {
-                            this.setState({ keyPos: 1 });
+                            this.setState({squatKeyPos: 1});
                         }
                         break;
                     case 1:
                         if (hipKneeDist / this.state.thighLen >= 0.9) {
-                            this.setState({ keyPos: 0 });
-                            this.setState({ reps: this.state.reps + 1 });
+                            this.setState({squatKeyPos: 0});
+                            this.setState({squatReps: this.state.squatReps + 1});
+                        }
+                        break;
+                }
+                switch (this.state.jumpingKeyPos) {
+                    case 0:
+                        if (this.state.angle >= 35) {
+                            this.setState({jumpingKeyPos: 1});
+                        }
+                        break;
+                    case 1:
+                        if (this.state.angle <= 15) {
+                            this.setState({jumpingKeyPos: 0});
+                            this.setState({jumpingJackReps: this.state.jumpingJackReps + 1});
                         }
                         break;
                 }
@@ -250,14 +281,14 @@ class Workout extends React.Component {
                 const adjacentKeyPoints = posenet.getAdjacentKeyPoints(pose.keypoints, minPartConfidence);
 
                 adjacentKeyPoints.forEach((keypoints) => {
-                    this.drawSegment(canvasContext,[keypoints[0].position.x, keypoints[0].position.y],
+                    this.drawSegment(canvasContext, [keypoints[0].position.x, keypoints[0].position.y],
                         [keypoints[1].position.x, keypoints[1].position.y]);
                 });
             }
             var t2 = performance.now();
 
             console.log(1000 / (t2 - this.state.t1));
-            this.setState({ t1: t2 })
+            this.setState({t1: t2})
             requestAnimationFrame(findPoseDetectionFrame)
         }
         findPoseDetectionFrame()
@@ -270,14 +301,17 @@ class Workout extends React.Component {
                 <div>
                     <video id="videoNoShow" playsInline ref={this.getVideo} style={{
                         display: "none"
-                    }} />
-                    <canvas className="webcam" ref={this.getCanvas} />
+                    }}/>
+                    <canvas className="webcam" ref={this.getCanvas}/>
                 </div>
                 <h2>{this.state.ready ? "START" : "Stand up upright with your entire body in the frame"}</h2>
-                <h2>Reps: {this.state.reps}</h2>
-                <h2>keyPos: {this.state.keyPos}</h2>
+                <h2>Squat Reps: {this.state.squatReps}</h2>
+                <h2>Jumping Jack Reps: {this.state.jumpingJackReps}</h2>
+                <h2>squatKeyPos: {this.state.squatKeyPos}</h2>
+                <h2>jumpingKeyPos: {this.state.jumpingKeyPos}</h2>
                 <h2>hkdist: {this.state.hkdist}</h2>
                 <h2>thighLen: {this.state.thighLen}</h2>
+                <h2>Angle: {this.state.angle}</h2>
             </div>
         )
     }

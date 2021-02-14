@@ -42,5 +42,10 @@ export default function App() {
 }
 
 function Home() {
-    return <h1>Home</h1>
+    return (
+        <div>
+        <h1>Home</h1>
+        <p>Meet your A.I. exercise buddy!</p>
+        </div>
+    )
 }
