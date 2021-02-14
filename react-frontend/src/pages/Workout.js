@@ -67,7 +67,8 @@ class Workout extends React.Component {
             keyPos: 0,
             reps: 0,
             hkdist: 0,
-            thighLen: 0
+            thighLen: 0,
+            angle:0
         }
     }
 
@@ -159,6 +160,10 @@ class Workout extends React.Component {
         canvasContext.stroke();
     }
 
+    distance([ax, ay], [bx, by]) {
+        return Math.hypot(ax - bx, ay - by);
+    }
+
     poseDetectionFrame(canvasContext) {
         const {
             imageScaleFactor,
@@ -218,11 +223,21 @@ class Workout extends React.Component {
             if (this.state.ready) {
                 var hipKneeDist = Math.abs(pos.rhip.y - pos.rknee.y)
                 this.setState({hkdist: hipKneeDist});
+                var rightKneePosition = [pos.rknee.x, pos.rknee.y];
+                var leftKneePosition = [pos.lknee.x, pos.rknee.y];
+                var midpointHips = [(pos.lhip.x + pos.rhip.x) / 2, (pos.lhip.y + pos.rhip.y) / 2];
+                var a = this.distance(midpointHips, rightKneePosition);
+                var b = this.distance(midpointHips, leftKneePosition)
+                this.setState({angle: Math.acos(
+                        (Math.pow(this.distance(leftKneePosition, rightKneePosition), 2) - Math.pow(a, 2) - Math.pow(b, 2))
+                        / (-2 * a * b)
+                    ) * 180. / Math.PI});
                 switch (this.state.keyPos) {
                     case 0:
                         if (hipKneeDist <= 0.5 * this.state.thighLen) {
                             this.setState({ keyPos: 1 });
                         }
+
                         break;
                     case 1:
                         if (hipKneeDist / this.state.thighLen >= 0.9) {
@@ -275,6 +290,7 @@ class Workout extends React.Component {
                 <h1>keyPos: {this.state.keyPos}</h1>
                 <h1>hkdist: {this.state.hkdist}</h1>
                 <h1>thighLen: {this.state.thighLen}</h1>
+                <h1>Angle: {this.state.angle}</h1>
             </div>
         )
     }
