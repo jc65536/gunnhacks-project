@@ -236,7 +236,7 @@ class Workout extends React.Component {
                 rankle: getPartPosition(pose, "rightAnkle"),
                 eye: getPartPosition(pose, "rightEye")
             }
-            if (!pos.lhip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder || !pos.rankle || !pos.lankle) {
+            if (!pos.lhip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder || !pos.rankle || !pos.lankle || !pos.eye) {
                 this.setState({ready: false});
             } else if (!this.state.ready) {
                 // sets these only once (when you stand in front of the camera)
