@@ -19,7 +19,7 @@ export default function NavBar() {
                     logged ? <Link to="/logout"><li>Logout</li></Link> : <Link to="/login"><li>Login</li></Link>
                 }
                 {
-                    logged ? <Link to="/dashboard"><li>Dashboard</li></Link> : <Link to="/signup"><li>Signup</li></Link>
+                    logged ? <Link to="/dashboard"><li>Dashboard</li></Link> : <Link to="/signup"><li>Sign Up</li></Link>
                 }
 
 

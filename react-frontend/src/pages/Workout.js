@@ -203,10 +203,7 @@ class Workout extends React.Component {
             imageScaleFactor,
             flipHorizontal,
             outputStride,
-            minPoseConfidence,
             minPartConfidence,
-            maxPoseDetections,
-            nmsRadius,
             videoWidth,
             videoHeight,
             showVideo,
@@ -230,8 +227,6 @@ class Workout extends React.Component {
 
             if (showVideo) {
                 canvasContext.save()
-                //canvasContext.scale(-1, 1)
-                //canvasContext.translate(-videoWidth, 0)
                 canvasContext.drawImage(video, 0, 0, videoWidth, videoHeight)
                 canvasContext.restore()
             }
@@ -342,7 +337,7 @@ class Workout extends React.Component {
         return (
             <div>
                 <h1>Workout</h1>
-                {!this.state.redirect ? <Redirect to="/dashboard" /> : ""}
+                {this.state.redirect ? <Redirect to="/dashboard" /> : ""}
                 <div class="workout-container">
                 <div>
                     <video id="videoNoShow" playsInline ref={this.getVideo} style={{

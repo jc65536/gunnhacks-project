@@ -32,7 +32,6 @@ class Signup extends React.Component {
 
     onSubmitClick(e) {
         e.preventDefault();
-        console.log("You pressed login");
         let opts = {
             'username': this.state.username,
             'password': this.state.password,
@@ -41,7 +40,6 @@ class Signup extends React.Component {
                 height: (parseFloat(this.state.height) + parseFloat(this.state.in) / 12) * 0.3048
             }
         }
-        console.log(opts);
         fetch('/api/register', {
             method: 'post',
             body: JSON.stringify(opts)
