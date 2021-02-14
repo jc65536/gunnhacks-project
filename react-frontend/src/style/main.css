@@ -1,0 +1,125 @@
+@font-face {
+    font-family: "Roboto-Slab";
+    src: url("roboto-slab/RobotoSlab-Regular.ttf");
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: "Roboto-Slab";
+    src: url("roboto-slab/RobotoSlab-Bold.ttf");
+    font-weight: bold;
+}
+
+* {
+    font-family: "Roboto-Slab";
+    color: #ffffff;
+}
+
+body {
+    background: #aaaaaa;
+}
+
+h1 {
+    font-size: 48px;
+}
+
+p {
+    font-size: 16px;
+}
+
+.content-container {
+    width: 85%;
+    background: #f0f0e8;
+    padding: 20px 40px;
+    margin: auto;
+    margin-top: 50px;
+    box-shadow: 0px 10px 20px #666666;
+}
+
+.content-container * {
+    color: #222222;
+}
+
+nav, nav ul {
+    display: block;
+    width: 100%;
+    margin-top: 0;
+}
+
+nav ul {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    flex-direction: row;
+    justify-content: flex-start;
+    background: #222222;
+}
+
+nav li {
+    display: inline-block;
+    padding: 16px 30px;
+}
+
+nav li:hover {
+    background: #333333;
+}
+
+form {
+    margin-left: 30px;
+}
+
+input[type=text], input[type=password], input[type=number] {
+    background-color: #ffffff;
+    border: 3px solid #ffffff;
+    padding: 16px 20px;
+    font-size: 16px;
+    margin: 10px 0px;
+}
+
+input[type=text]:focus, input[type=password]:focus, input[type=number]:focus {
+    border: 3px solid #222222;
+    outline: none;
+}
+
+input[type="button"], input[type="submit"] {
+    background: #222222;
+    border: 0;
+    padding: 16px 20px;
+    font-size: 16px;
+    margin: 10px 0px;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+input[type="button"]:hover, input[type="submit"]:hover {
+    background: #33aa33;
+}
+
+input[type="button"]:focus, input[type="submit"]:focus {
+    outline: none;
+}
+
+a:focus {
+    outline: none;
+}
+
+.workouts-container {
+    padding: 0;
+}
+
+.workout-card {
+    list-style: none;
+    background: #fcfcf8;
+    box-shadow: 0px 3px 5px #666666;
+    padding: 10px 20px;
+    margin: 16px 0px;
+}
+
+.workout-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.workout-container>div:last-child {
+    padding-left: 40px;
+}

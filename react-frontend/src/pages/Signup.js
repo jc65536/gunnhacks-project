@@ -16,22 +16,30 @@ class Signup extends React.Component {
         this.state = {
             signedUp: false,
             username: "",
-            password: ""
+            password: "",
+            weight: "",
+            height: "",
+            in: "",
         };
 
         this.onSubmitClick = this.onSubmitClick.bind(this);
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
         this.handleUsernameChange = this.handleUsernameChange.bind(this);
+        this.handleWeightChange = this.handleWeightChange.bind(this);
+        this.handleHeightChange = this.handleHeightChange.bind(this);
+        this.handleInChange = this.handleInChange.bind(this);
     }
 
     onSubmitClick(e) {
         e.preventDefault();
-        console.log("You pressed login");
         let opts = {
             'username': this.state.username,
-            'password': this.state.password
+            'password': this.state.password,
+            attributes: {
+                weight: parseFloat(this.state.weight) * 0.453592,
+                height: (parseFloat(this.state.height) + parseFloat(this.state.in) / 12) * 0.3048
+            }
         }
-        console.log(opts);
         fetch('/api/register', {
             method: 'post',
             body: JSON.stringify(opts)
@@ -39,26 +47,37 @@ class Signup extends React.Component {
             .then(token => {
                 console.log(token.message);
                 if (token.registered) {
-                    this.setState({signedUp: true});
+                    this.setState({ signedUp: true });
                 }
             })
     }
 
     handleUsernameChange(e) {
-        this.setState({username: e.target.value});
+        this.setState({ username: e.target.value });
     }
 
     handlePasswordChange(e) {
-        this.setState({password: e.target.value});
+        this.setState({ password: e.target.value });
+    }
+
+    handleWeightChange(e) {
+        this.setState({ weight: e.target.value })
+    }
+
+    handleHeightChange(e) {
+        this.setState({ height: e.target.value })
+    }
+
+    handleInChange(e) {
+        this.setState({ in: e.target.value})
     }
 
     render() {
         if (this.state.signedUp) {
-            alert("You are signed up! Now you can log in.");
             return <Redirect to="/login" />
         } else
             return <div>
-                <h2>Sign up</h2>
+                <h1>Sign up</h1>
                 <form action="#">
                     <div>
                         <input type="text"
@@ -75,7 +94,40 @@ class Signup extends React.Component {
                             value={this.state.password}
                         />
                     </div>
-                    <input value="Sign up" onClick={this.onSubmitClick} type="submit" />
+                    <br />
+                    Optional:
+                    <div>
+                        <input
+                            type="number"
+                            placeholder="Weight (lbs)"
+                            onChange={this.handleWeightChange}
+                            value={this.state.weight}
+                        />
+                    </div>
+                    <div>
+                        <input
+                            type="number"
+                            placeholder="Height (ft)"
+                            onChange={this.handleHeightChange}
+                            value={this.state.height}
+                            style={{
+                                width: "120px",
+
+                            }}
+                        />
+                        <input
+                            type="number"
+                            placeholder="(in)"
+                            onChange={this.handleInChange}
+                            value={this.state.in}
+                            style={{
+                                width: "60px",
+                                marginLeft: "16px",
+
+                            }}
+                        />
+                    </div>
+                    <input onClick={this.onSubmitClick} type="submit" value="Sign up" />
                 </form>
             </div>
     }

@@ -3,6 +3,7 @@ import {
     BrowserRouter as Router,
     Switch,
     Route,
+    Redirect,
     Link
 } from "react-router-dom"
 import {login, useAuth, logout} from "../auth"
@@ -45,7 +46,7 @@ export default function Login() {
 
     return (
         <div>
-            <h2>Login</h2>
+            <h1>Login</h1>
             {!logged ? <form action="#">
                 <div>
                     <input type="text"
@@ -64,7 +65,7 @@ export default function Login() {
                 </div>
                 <input onClick={onSubmitClick} type="submit" value="Login" />
             </form>
-                : <input type="submit" value="Logout" onClick={() => logout()} />}
+                : <Redirect to="/dashboard"/>}
         </div >
     )
 }
