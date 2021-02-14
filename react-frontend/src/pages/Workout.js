@@ -21,8 +21,9 @@ function getPartPosition(pose, part) {
 }
 
 class Workout extends React.Component {
-
+    
     doWorkout() {
+        this.setState({ running: false })
         this.video.srcObject.getTracks().forEach(function (track) {
             track.stop();
         });
@@ -42,7 +43,7 @@ class Workout extends React.Component {
                 return response.json();
             }).then(response => {
                 console.log(response);
-                this.setState({ running: false })
+                this.setState({redirect: true})
             })
         }
     }
@@ -84,7 +85,8 @@ class Workout extends React.Component {
             lowest: 10000000000,
             pxHeight: 0,
             animation: null,
-            running: true
+            running: true,
+            redirect: false
         }
 
         this.doWorkout = this.doWorkout.bind(this);
@@ -340,7 +342,7 @@ class Workout extends React.Component {
         return (
             <div>
                 <h1>Workout</h1>
-                {!this.state.running ? <Redirect to="/dashboard" /> : ""}
+                {!this.state.redirect ? <Redirect to="/dashboard" /> : ""}
                 <div class="workout-container">
                 <div>
                     <video id="videoNoShow" playsInline ref={this.getVideo} style={{
