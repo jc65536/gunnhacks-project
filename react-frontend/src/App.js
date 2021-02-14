@@ -13,6 +13,7 @@ import PrivateRoute from "./components/PrivateRoute"
 import Workout from "./pages/Workout"
 import "./style/main.css"
 import NavBar from "./components/NavBar"
+import Logout from "./pages/Logout"
 
 export default function App() {
     return (
@@ -31,6 +32,9 @@ export default function App() {
                         </Route>
                         <PrivateRoute component={Dashboard} path="/dashboard"/>
                         <PrivateRoute component={Workout} path="/workout"/>
+                        <Route path="/logout">
+                            <Logout />
+                        </Route>
                         <Route path="/">
                             <Home/>
                         </Route>

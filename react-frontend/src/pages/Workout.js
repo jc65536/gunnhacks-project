@@ -23,26 +23,28 @@ function getPartPosition(pose, part) {
 class Workout extends React.Component {
 
     doWorkout() {
-        this.setState({running: false})
+        this.setState({ running: false })
         this.video.srcObject.getTracks().forEach(function (track) {
             track.stop();
         });
-        authFetch("/api/setstats", {
-            method: 'post',
-            body: JSON.stringify({
-                reps: {
-                    squats: this.state.squatReps,
-                    jumpingJacks: this.state.jumpingJackReps
-                },
-                date: new Date().toISOString(),
-                calories: this.state.calories
-            })
-        }).then(response => {
+        if (this.state.squatReps + this.state.jumpingJackReps > 0) {
+            authFetch("/api/setstats", {
+                method: 'post',
+                body: JSON.stringify({
+                    reps: {
+                        squats: this.state.squatReps,
+                        jumpingJacks: this.state.jumpingJackReps
+                    },
+                    date: new Date().toISOString(),
+                    calories: this.state.calories
+                })
+            }).then(response => {
 
-            return response.json();
-        }).then(response => {
-            console.log(response)
-        })
+                return response.json();
+            }).then(response => {
+                console.log(response)
+            })
+        }
     }
 
     static defaultProps = {
@@ -276,7 +278,7 @@ class Workout extends React.Component {
                 switch (this.state.squatKeyPos) {
                     case 0:
                         if (hipKneeDist <= 0.65 * this.state.thighLen && !(this.state.jumpingKeyPos)) {
-                            this.setState({squatKeyPos: 1});
+                            this.setState({ squatKeyPos: 1 });
                         }
                         break;
                     case 1:
@@ -285,7 +287,7 @@ class Workout extends React.Component {
                             this.setState({ squatReps: this.state.squatReps + 1 });
                             var delta = 0;
                             delta = this.state.weight * 10 * ((this.state.pxHeight - this.state.lowest) / this.state.pxHeight * this.state.height) * 0.000239006;
-                            
+
                             this.setState({ calories: this.state.calories + delta })
                             this.setState({ lowest: 10000000000 });
                         }
@@ -294,7 +296,7 @@ class Workout extends React.Component {
                 switch (this.state.jumpingKeyPos) {
                     case 0:
                         if (this.state.angle >= 35 && !(this.state.squatKeyPos)) {
-                            this.setState({jumpingKeyPos: 1});
+                            this.setState({ jumpingKeyPos: 1 });
                         }
                         break;
                     case 1:
@@ -338,18 +340,22 @@ class Workout extends React.Component {
         return (
             <div>
                 <h1>Workout</h1>
-                {!this.state.running ? <Redirect to="/dashboard"/> : ""}
+                {!this.state.running ? <Redirect to="/dashboard" /> : ""}
+                <div class="workout-container">
                 <div>
                     <video id="videoNoShow" playsInline ref={this.getVideo} style={{
                         display: "none"
                     }} />
                     <canvas className="webcam" ref={this.getCanvas} />
                 </div>
+                <div>
                 <h2>{this.state.ready ? "START" : "Stand up upright with your entire body in the frame"}</h2>
                 <h2>Squat Reps: {this.state.squatReps}</h2>
                 <h2>Jumping Jack Reps: {this.state.jumpingJackReps}</h2>
                 <h2>Calories: {this.state.calories.toFixed(2)}</h2>
                 <input type="button" value="End workout" onClick={this.doWorkout} />
+                </div>
+                </div>
             </div>
         )
     }

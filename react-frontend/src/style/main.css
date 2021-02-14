@@ -16,7 +16,7 @@
 }
 
 body {
-    background: #111111;
+    background: #aaaaaa;
 }
 
 h1 {
@@ -29,10 +29,15 @@ p {
 
 .content-container {
     width: 85%;
-    background: #181818;
+    background: #f0f0e8;
     padding: 20px 40px;
     margin: auto;
     margin-top: 50px;
+    box-shadow: 0px 10px 20px #666666;
+}
+
+.content-container * {
+    color: #222222;
 }
 
 nav, nav ul {
@@ -64,29 +69,30 @@ form {
 }
 
 input[type=text], input[type=password], input[type=number] {
-    background-color: #111111;
-    border: 0;
+    background-color: #ffffff;
+    border: 3px solid #ffffff;
     padding: 16px 20px;
     font-size: 16px;
     margin: 10px 0px;
 }
 
 input[type=text]:focus, input[type=password]:focus, input[type=number]:focus {
-    border: 0;
+    border: 3px solid #222222;
     outline: none;
 }
 
 input[type="button"], input[type="submit"] {
+    background: #222222;
     border: 0;
     padding: 16px 20px;
     font-size: 16px;
     margin: 10px 0px;
-    background: #333333;
+    color: #ffffff;
     cursor: pointer;
 }
 
 input[type="button"]:hover, input[type="submit"]:hover {
-    background: #338833;
+    background: #33aa33;
 }
 
 input[type="button"]:focus, input[type="submit"]:focus {
@@ -103,7 +109,17 @@ a:focus {
 
 .workout-card {
     list-style: none;
-    background: #222222;
+    background: #fcfcf8;
+    box-shadow: 0px 3px 5px #666666;
     padding: 10px 20px;
     margin: 16px 0px;
+}
+
+.workout-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.workout-container>div:last-child {
+    padding-left: 40px;
 }

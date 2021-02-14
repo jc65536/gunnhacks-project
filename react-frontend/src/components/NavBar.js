@@ -13,11 +13,17 @@ export default function NavBar() {
             <ul>
                 <Link to="/"><li>Home</li></Link>
 
-                <Link to="/login"><li>{logged ? "Logout" : "Login"}</li></Link>
+                
 
-                <Link to="/signup"><li>Signup</li></Link>
+                {
+                    logged ? <Link to="/logout"><li>Logout</li></Link> : <Link to="/login"><li>Login</li></Link>
+                }
+                {
+                    logged ? <Link to="/dashboard"><li>Dashboard</li></Link> : <Link to="/signup"><li>Signup</li></Link>
+                }
 
-                <Link to="/dashboard"><li>Dashboard</li></Link>
+
+
             </ul>
         </nav>
     )
