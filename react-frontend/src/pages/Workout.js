@@ -11,6 +11,7 @@ import * as posenet from "@tensorflow-models/posenet"
 import * as tfjs from '@tensorflow/tfjs';
 
 function getPartPosition(pose, part) {
+    pose = pose.keypoints
     var obj = pose.find(o => o.part === part);
     if (obj.score > 0.1) {
         return obj.position
@@ -191,31 +192,33 @@ class Workout extends React.Component {
             }
             var thighLen = 0;
             if (!pos.lHip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder) {
-                this.setState({ready: false});
+                this.setState({ ready: false });
             } else if (!this.state.ready) {
                 // sets these only once (when you stand in front of the camera)
-                this.setState({ready: true});
+                this.setState({ ready: true });
                 thighLen = Math.abs(pos.rhip.y - pos.lhip.y);
             }
-            var hipKneeDist = Math.abs(pos.rhip.y - pos.rknee.y)
-            switch (this.state.keyPos) {
-                case 0:
-                    if (hipKneeDist <= 0.5 * thighLen) {
-                        this.setState({keyPos: 1});
-                    }
-                    break;
-                case 1:
-                    if ((thighLen - hipKneeDist) / thighLen >= 0.9) {
-                        this.setState({keyPos: 0});
-                        this.setState({reps: this.state.reps + 1});
-                    } 
-                    break;
+            if (this.state.ready) {
+                var hipKneeDist = Math.abs(pos.rhip.y - pos.rknee.y)
+                switch (this.state.keyPos) {
+                    case 0:
+                        if (hipKneeDist <= 0.5 * thighLen) {
+                            this.setState({ keyPos: 1 });
+                        }
+                        break;
+                    case 1:
+                        if ((thighLen - hipKneeDist) / thighLen >= 0.9) {
+                            this.setState({ keyPos: 0 });
+                            this.setState({ reps: this.state.reps + 1 });
+                        }
+                        break;
+                }
             }
 
             var t2 = performance.now();
 
             console.log(1000 / (t2 - this.state.t1));
-            this.setState({t1: t2})
+            this.setState({ t1: t2 })
             requestAnimationFrame(findPoseDetectionFrame)
         }
         findPoseDetectionFrame()
