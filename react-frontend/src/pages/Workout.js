@@ -23,7 +23,6 @@ function getPartPosition(pose, part) {
 class Workout extends React.Component {
 
     doWorkout() {
-        this.setState({ running: false })
         this.video.srcObject.getTracks().forEach(function (track) {
             track.stop();
         });
@@ -42,7 +41,8 @@ class Workout extends React.Component {
 
                 return response.json();
             }).then(response => {
-                console.log(response)
+                console.log(response);
+                this.setState({ running: false })
             })
         }
     }

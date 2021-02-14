@@ -13,7 +13,7 @@ class WorkoutCard extends React.Component {
         for (var i in this.props.stats.reps) {
             var exName;
             if (i === "jumpingJacks")
-                exName = "Jumping jacks";
+                exName = "Jumping Jacks";
             else {
                 exName = "Squats"
             }

@@ -14,6 +14,7 @@ export default function Dashboard() {
     const [workouts, setWorkouts] = useState([]);
 
     useEffect(() => {
+        console.log("HELLOW");
         authFetch("/api/getstats").then(response => {
             if (response.status === 401) {
                 setMessage("Sorry you aren't authorized!")
