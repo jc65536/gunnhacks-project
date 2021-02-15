@@ -6,7 +6,7 @@ import {
     Redirect,
     Link
 } from "react-router-dom"
-import {login, useAuth, logout} from "../auth"
+import { login, useAuth, logout } from "../auth"
 
 export default function Login() {
     const [username, setUsername] = useState('')
@@ -15,25 +15,20 @@ export default function Login() {
 
     const onSubmitClick = (e) => {
         e.preventDefault()
-        console.log("You pressed login")
         let opts = {
             'username': username,
             'password': password
         }
-        console.log(opts)
         fetch('/api/login', {
             method: 'post',
             body: JSON.stringify(opts)
-        }).then(r => r.json())
-            .then(token => {
-                if (token.access_token) {
-                    login(token)
-                    console.log(token)
-                }
-                else {
-                    console.log("Please type in correct username/password")
-                }
-            })
+        }).then(r => r.json()).then(token => {
+            if (token.access_token) {
+                login(token)
+            } else {
+                console.log("Please type in correct username/password")
+            }
+        })
     }
 
     const handleUsernameChange = (e) => {
@@ -65,7 +60,7 @@ export default function Login() {
                 </div>
                 <input onClick={onSubmitClick} type="submit" value="Login" />
             </form>
-                : <Redirect to="/dashboard"/>}
+                : <Redirect to="/dashboard" />}
         </div >
     )
 }

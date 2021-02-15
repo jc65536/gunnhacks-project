@@ -10,9 +10,16 @@ import { login, authFetch, useAuth, logout } from "../auth"
 import * as posenet from "@tensorflow-models/posenet"
 import * as tfjs from '@tensorflow/tfjs';
 
-function getPartPosition(pose, part) {
-    pose = pose.keypoints
-    var obj = pose.find(o => o.part === part);
+/*
+    Recommended reading:
+        Most of our code is copied from here: https://github.com/kirstenlindsmith/PoseNet_React/blob/master/client/components/Camera.js
+        Tensorflow PoseNet documentation: https://github.com/tensorflow/tfjs-models/tree/master/posenet
+*/
+
+// Gets the coordinates of a body part from the default keypoints array so we can make a map that's easier to access
+function getPartPosition(keypoints, part) {
+    keypoints = keypoints.keypoints
+    var obj = keypoints.find(o => o.part === part);
     if (obj.score > 0.1) {
         return obj.position
     } else {
@@ -21,12 +28,11 @@ function getPartPosition(pose, part) {
 }
 
 class Workout extends React.Component {
-    
+
+    // Ends workout: stops the webcam and animation, POSTs to /api/setstats to log a workout, then redirects
     doWorkout() {
         this.setState({ running: false })
-        this.video.srcObject.getTracks().forEach(function (track) {
-            track.stop();
-        });
+        this.video.srcObject.getTracks().forEach(track => track.stop());
         if (this.state.squatReps + this.state.jumpingJackReps > 0) {
             authFetch("/api/setstats", {
                 method: 'post',
@@ -38,16 +44,14 @@ class Workout extends React.Component {
                     date: new Date().toISOString(),
                     calories: this.state.calories
                 })
-            }).then(response => {
-
-                return response.json();
-            }).then(response => {
+            }).then(r => r.json()).then(response => {
                 console.log(response);
-                this.setState({redirect: true})
+                this.setState({ redirect: true })
             })
         }
     }
 
+    // This is copied from kirstenlindsmith's code, idk how many of these the code actually uses
     static defaultProps = {
         videoWidth: 500,
         videoHeight: 500,
@@ -68,25 +72,24 @@ class Workout extends React.Component {
 
     constructor(props) {
         super(props)
+
+        // state variables for global variables
         this.state = {
-            t1: performance.now(),
-            ready: false,
-            squatKeyPos: 0,
-            jumpingKeyPos: 0,
-            squatReps: 0,
-            jumpingJackReps: 0,
-            hkdist: 0,
-            thighLen: 0,
-            angle: 0,
-            torsoSize: 0,
-            weight: 0,
-            height: 0,
-            calories: 0,
-            lowest: 10000000000,
-            pxHeight: 0,
-            animation: null,
-            running: true,
-            redirect: false
+            bodyInFrame: false,         // the pose classification algo will only run if the entire body is visible
+            squatKeyPos: 0,             // indicates the "key position" of the user: 0 = standing, 1 = squatting; we switch between states to count reps
+            jumpingKeyPos: 0,           /* 0 = standing, 1 = jumped out (feet spread out); we could probably combine squatKeyPos and jumpingKeyPos into a single
+                                           keyPos variable with values 0, 1, and 2, but this is the spaghetti that ended up working for us :P */
+            squatReps: 0,               // counts how many squats you did
+            jumpingJackReps: 0,         // counts how many jumping jacks you did
+            thighLen: 0,                // the maximum distance between hip and knee; we need this to be global
+            torsoSize: 0,               // the distance between shoulders
+            weight: 0,                  // user's weight
+            height: 0,                  // user's height
+            calories: 0,                // cumulative calories  the workout
+            lowest: 10000000000,        // tracks the lowest height of the body
+            pxHeight: 0,                // the distance between eye and heels; i.e. the user's height in pixels on screen
+            running: true,              // if this is set to false, the pose detection loop will stop requesting new frames
+            redirect: false             // if this is set to true, the render function will return a redirect to /dashboard
         }
 
         this.doWorkout = this.doWorkout.bind(this);
@@ -101,6 +104,8 @@ class Workout extends React.Component {
     }
 
     async componentDidMount() {
+
+        // load camera
         try {
             await this.setupCamera()
         } catch (error) {
@@ -109,6 +114,7 @@ class Workout extends React.Component {
             )
         }
 
+        // load PoseNet model
         try {
             this.posenet = await posenet.load()
         } catch (error) {
@@ -119,13 +125,8 @@ class Workout extends React.Component {
             }, 200)
         }
 
-        authFetch("/api/getuser").then(response => {
-            if (response.status === 401) {
-                console.log("Sorry you aren't authorized!")
-                return null
-            }
-            return response.json();
-        }).then(response => {
+        // get the user's info (height and weight)
+        authFetch("/api/getuser").then(r => r.json()).then(response => {
             if (response) {
                 console.log(response);
                 this.setState({ weight: response.weight })
@@ -133,9 +134,11 @@ class Workout extends React.Component {
             }
         })
 
+        // start pose detection
         this.detectPose()
     }
 
+    // idk much about the media library but this works
     async setupCamera() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             throw new Error(
@@ -166,6 +169,7 @@ class Workout extends React.Component {
         })
     }
 
+    // Prepares the canvas for drawing the skeleton then actually starts pose detection
     detectPose() {
         const { videoWidth, videoHeight } = this.props
         const canvas = this.canvas
@@ -177,6 +181,7 @@ class Workout extends React.Component {
         this.poseDetectionFrame(canvasContext)
     }
 
+    // Functions for drawing the skeleton
     drawPoint(canvasContext, x, y, radius = 3, color = "chartreuse") {
         canvasContext.beginPath();
         canvasContext.arc(x, y, radius, 0, 2 * Math.PI);
@@ -198,6 +203,7 @@ class Workout extends React.Component {
         return Math.hypot(ax - bx, ay - by);
     }
 
+    // Actual pose detection/classification logic is here
     poseDetectionFrame(canvasContext) {
         const {
             imageScaleFactor,
@@ -216,6 +222,7 @@ class Workout extends React.Component {
 
         const findPoseDetectionFrame = async () => {
 
+            // this is where PoseNet does its magic and gives us a list of keypoints and positions
             const pose = await posenetModel.estimateSinglePose(
                 video,
                 imageScaleFactor,
@@ -223,6 +230,7 @@ class Workout extends React.Component {
                 outputStride
             )
 
+            // draw the video image to the canvas
             canvasContext.clearRect(0, 0, videoWidth, videoHeight)
 
             if (showVideo) {
@@ -231,7 +239,7 @@ class Workout extends React.Component {
                 canvasContext.restore()
             }
 
-            // WIP squat detection
+            // pos is a map of body parts to coordinates that's easier to access than PoseNet's default output
             var pos = {
                 lhip: getPartPosition(pose, "leftHip"),
                 rhip: getPartPosition(pose, "rightHip"),
@@ -243,64 +251,79 @@ class Workout extends React.Component {
                 rankle: getPartPosition(pose, "rightAnkle"),
                 eye: getPartPosition(pose, "rightEye")
             }
+
+            // checks that all body parts are on frame and detectable
             if (!pos.lhip || !pos.rhip || !pos.lknee || !pos.rknee || !pos.lshoulder || !pos.rshoulder || !pos.rankle || !pos.lankle || !pos.eye) {
                 this.setState({ ready: false });
-            } else if (!this.state.ready) {
+            } else if (!this.state.bodyInFrame) {
                 // sets these only once (when you stand in front of the camera)
                 this.setState({ ready: true });
                 this.setState({ thighLen: Math.abs(pos.rhip.y - pos.rknee.y) })
                 this.setState({ pxHeight: Math.abs(pos.eye.y - pos.rankle.y) })
             }
-            if (this.state.ready) {
-                var hipKneeDist = Math.abs(pos.rhip.y - pos.rknee.y)
-                var newTorsoSize = Math.abs(pos.rshoulder.x - pos.lshoulder.x);
+
+            if (this.state.bodyInFrame) {
+                var hipKneeDist = Math.abs(pos.rhip.y - pos.rknee.y)                // i.e. visible length of the thigh
+                var newTorsoSize = Math.abs(pos.rshoulder.x - pos.lshoulder.x);     // i.e. shoulder width
+
+                // if torso size is changing too much, that means the user is moving forward or backwards, so recalculate thighLen and pxHeight
                 if (Math.abs(newTorsoSize - this.state.torsoSize) / this.state.torsoSize > 0.3) {
                     this.setState({ torsoSize: newTorsoSize });
                     this.setState({ thighLen: Math.abs(pos.rhip.y - pos.rknee.y) })
                     this.setState({ pxHeight: Math.abs(pos.eye.y - pos.rankle.y) })
                 }
-                this.setState({ hkdist: hipKneeDist });
+
+                // variables to calculate angle
                 const rightPosition = [pos.rankle.x, pos.rankle.y];
                 const leftPosition = [pos.lankle.x, pos.lankle.y];
                 const midpointHips = [(pos.lhip.x + pos.rhip.x) / 2, (pos.lhip.y + pos.rhip.y) / 2];
                 const a = this.distance(midpointHips, rightPosition);
                 const b = this.distance(midpointHips, leftPosition);
-                this.setState({
-                    angle: Math.acos(
-                        (Math.pow(this.distance(leftPosition, rightPosition), 2) - Math.pow(a, 2) - Math.pow(b, 2))
-                        / (-2 * a * b)
-                    ) * 180. / Math.PI
-                });
+                // leg angle = angle formed by the left heel, the groin (midpoint between hips), and the right heel
+                var angle = Math.acos(
+                    (Math.pow(this.distance(leftPosition, rightPosition), 2) - Math.pow(a, 2) - Math.pow(b, 2))
+                    / (-2 * a * b)
+                ) * 180. / Math.PI
+
+                // update the lowest state variable
                 this.setState({ lowest: Math.min(this.state.lowest, Math.abs(pos.eye.y - pos.rankle.y)) })
+
+                // state switchers - we switch between states to keep track of the progression of the exercise
                 switch (this.state.squatKeyPos) {
                     case 0:
+                        // if hipKneeDist is decreasing, that means the user is squatting down - see for yourself using the skeleton!
                         if (hipKneeDist <= 0.65 * this.state.thighLen && !(this.state.jumpingKeyPos)) {
                             this.setState({ squatKeyPos: 1 });
                         }
                         break;
                     case 1:
+                        // when hipKneeDist recovers to close to the thighLen, that means the user has stood back up
                         if (hipKneeDist / this.state.thighLen >= 0.9) {
                             this.setState({ squatKeyPos: 0 });
                             this.setState({ squatReps: this.state.squatReps + 1 });
-                            var delta = 0;
-                            delta = this.state.weight * 10 * ((this.state.pxHeight - this.state.lowest) / this.state.pxHeight * this.state.height) * 0.000239006;
 
+                            // delta is the amount of calories burned by a single squat
+                            // W = mgh * 0.00239006 kCal / Joule
+                            var delta = this.state.weight * 10 * ((this.state.pxHeight - this.state.lowest) / this.state.pxHeight * this.state.height) * 0.000239006;
                             this.setState({ calories: this.state.calories + delta })
+
+                            // reset lowest state since we've stood back up
                             this.setState({ lowest: 10000000000 });
                         }
                         break;
                 }
                 switch (this.state.jumpingKeyPos) {
                     case 0:
-                        if (this.state.angle >= 35 && !(this.state.squatKeyPos)) {
+                        // we only track the angle between the legs to determine if the user has jumped out (no arms)
+                        if (angle >= 35 && !(this.state.squatKeyPos)) {
                             this.setState({ jumpingKeyPos: 1 });
                         }
                         break;
                     case 1:
-                        if (this.state.angle <= 15) {
+                        if (angle <= 15) {
                             this.setState({ jumpingKeyPos: 0 });
                             this.setState({ jumpingJackReps: this.state.jumpingJackReps + 1 });
-                            delta = this.state.weight * 10 * ((this.state.pxHeight - this.state.lowest) / this.state.pxHeight * this.state.height) * 0.000239006;
+                            var delta = this.state.weight * 10 * ((this.state.pxHeight - this.state.lowest) / this.state.pxHeight * this.state.height) * 0.000239006;
                             this.setState({ calories: this.state.calories + delta })
                             this.setState({ lowest: 10000000000 });
                         }
@@ -308,25 +331,26 @@ class Workout extends React.Component {
                 }
             }
 
+            // Draw the points and lines to form the skeleton
             if (showPoints) {
                 for (var i = 0; i < pose.keypoints.length; i++) {
                     const keypoint = pose.keypoints[i];
                     if (keypoint.score < minPartConfidence) {
                         continue;
                     }
-
                     this.drawPoint(canvasContext, keypoint['position']['x'], keypoint['position']['y']);
                 }
             }
 
             if (showSkeleton) {
                 const adjacentKeyPoints = posenet.getAdjacentKeyPoints(pose.keypoints, minPartConfidence);
-
                 adjacentKeyPoints.forEach((keypoints) => {
                     this.drawSegment(canvasContext, [keypoints[0].position.x, keypoints[0].position.y],
                         [keypoints[1].position.x, keypoints[1].position.y]);
                 });
             }
+
+            // This allows us to control pose detection through the running state variable
             if (this.state.running)
                 requestAnimationFrame(findPoseDetectionFrame)
         }
@@ -334,24 +358,25 @@ class Workout extends React.Component {
     }
 
     render() {
+        // The video element is actually hidden because we draw the video image and skeleton to the canvas instead
         return (
             <div>
                 <h1>Workout</h1>
                 {this.state.redirect ? <Redirect to="/dashboard" /> : ""}
                 <div class="workout-container">
-                <div>
-                    <video id="videoNoShow" playsInline ref={this.getVideo} style={{
-                        display: "none"
-                    }} />
-                    <canvas className="webcam" ref={this.getCanvas} />
-                </div>
-                <div>
-                <h2>{this.state.ready ? "START" : "Stand up upright with your entire body in the frame"}</h2>
-                <h2>Squat Reps: {this.state.squatReps}</h2>
-                <h2>Jumping Jack Reps: {this.state.jumpingJackReps}</h2>
-                <h2>Calories: {this.state.calories.toFixed(2)}</h2>
-                <input type="button" value="End workout" onClick={this.doWorkout} />
-                </div>
+                    <div>
+                        <video id="videoNoShow" playsInline ref={this.getVideo} style={{
+                            display: "none"
+                        }} />
+                        <canvas className="webcam" ref={this.getCanvas} />
+                    </div>
+                    <div>
+                        <h2>{this.state.bodyInFrame ? "START" : "Stand up upright with your entire body in the frame"}</h2>
+                        <h2>Squat Reps: {this.state.squatReps}</h2>
+                        <h2>Jumping Jack Reps: {this.state.jumpingJackReps}</h2>
+                        <h2>Calories: {this.state.calories.toFixed(2)}</h2>
+                        <input type="button" value="End workout" onClick={this.doWorkout} />
+                    </div>
                 </div>
             </div>
         )

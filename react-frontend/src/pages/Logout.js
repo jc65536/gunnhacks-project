@@ -10,5 +10,5 @@ import {
 
 export default function Logout() {
     logout();
-    return <Redirect to="/login"/>
+    return <Redirect to="/login" />
 }

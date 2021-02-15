@@ -9,31 +9,42 @@ import {
 } from "react-router-dom"
 
 export default function Dashboard() {
-    const [message, setMessage] = useState('')
     const [stats, setStats] = useState({});
     const [workouts, setWorkouts] = useState([]);
 
+    /*
+        /api/getstats response example:
+        {
+            streak: STREAK,
+            workouts: [
+                {
+                    timestamp: 123912312,
+                    reps: { jumpingJacks: 1, squats: 2 },
+                    calories: 100
+                },
+                {
+                    timestamp: 123912312,
+                    reps: { jumpingJacks: 1, squats: 2 },
+                    calories: 100
+                },
+            ]
+        }
+    */
+
     useEffect(() => {
-        console.log("HELLOW");
-        authFetch("/api/getstats").then(response => {
-            if (response.status === 401) {
-                setMessage("Sorry you aren't authorized!")
-                return null
-            }
-            return response.json();
-        }).then(response => {
+        authFetch("/api/getstats").then(r => r.json()).then(response => {
             if (response) {
-                console.log(response);
                 setStats(response);
-                setWorkouts(response.workouts.sort((a, b) => (a.timestamp < b.timestamp) ? 1 : -1).map(o => <WorkoutCard stats={o}/>));
+                // sorts the workouts array then maps it into an array of WorkoutCard components
+                setWorkouts(response.workouts.sort((a, b) => (a.timestamp < b.timestamp) ? 1 : -1).map(o => <WorkoutCard stats={o} />));
             }
         })
     }, [])
+
     return (
-        
         <div>
             <h1>Dashboard</h1>
-            <Link to="/workout"><input type="button" value="Workout"/></Link>
+            <Link to="/workout"><input type="button" value="Workout" /></Link>
             <div className="stats-container">
                 <h2>Streak: {stats.streak}</h2>
             </div>

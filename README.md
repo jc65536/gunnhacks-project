@@ -1,12 +1,15 @@
 # gunnhacks-project
 Gunnhacks project
 
-How to run frontend:
+### How to run frontend:
 ```
 cd react-frontend
 npm install package.json (if this is your first time)
 npm start
 ```
+
+### Frontend notes:
+- The api routes are simply `/api/[endpoint]` because in `package.json` we put a proxy field of `http://localhost:5000`
 
 ### How to run backend
 
