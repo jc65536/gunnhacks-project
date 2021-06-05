@@ -1,6 +1,7 @@
 # gunnhacks-project
 Gunnhacks project
 
+DevPost Link: https://devpost.com/software/jumping-jarvis
 ### How to run frontend:
 ```
 cd react-frontend
